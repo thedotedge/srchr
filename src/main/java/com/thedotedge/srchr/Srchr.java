@@ -1,7 +1,7 @@
 package com.thedotedge.srchr;
 
 import com.thedotedge.srchr.dict.Dictionary;
-import com.thedotedge.srchr.dict.SearchResult;
+import com.thedotedge.srchr.dict.search.SearchResult;
 import com.thedotedge.srchr.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
 
@@ -55,10 +55,10 @@ public class Srchr {
             switch (tokens[0]) {
                 case ":search":
                     stopWatch.start();
-                    Collection<SearchResult> matches = dict.search(params, MAX_HITS);
-                    if (!matches.isEmpty()) {
+                    List<SearchResult> results = dict.search(params, MAX_HITS);
+                    if (!results.isEmpty()) {
                         System.out.printf("Done in %s\n", stopWatch);
-                        matches.forEach(m -> System.out.printf("%s -> %d%% (%s)\n", m.getFileName(), m.getScore(params.size()), m.getMatches().stream()
+                        results.forEach(m -> System.out.printf("%s -> %d%% (%s)\n", m.getFileName(), m.getScore(params.size(), results.get(0)), m.getMatches().stream()
                                 .map(entry -> String.format("%s: %d hits", entry.getName(), entry.getReferenceCount()))
                                 .collect(Collectors.joining(", "))
                         ));

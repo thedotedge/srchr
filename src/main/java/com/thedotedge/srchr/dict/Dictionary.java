@@ -1,5 +1,6 @@
 package com.thedotedge.srchr.dict;
 
+import com.thedotedge.srchr.dict.search.SearchResult;
 import com.thedotedge.srchr.io.FileUtils;
 
 import java.util.*;
@@ -40,13 +41,13 @@ public class Dictionary {
                 .sorted((r1, r2) -> Long.compare(r2.getValue(), r1.getValue())) // number or references in desc order
                 .forEach(stringLongEntry -> {
                     String word = stringLongEntry.getKey();
-                    DictionaryEntry entry = new DictionaryEntry(sourceFile, stringLongEntry.getValue());
+                    DictionaryEntry entry = new DictionaryEntry(sourceFile, stringLongEntry.getValue().intValue());
                     if (wordList.containsKey(word)) {
                         wordList.get(word).add(entry);
                     } else {
                         wordList.put(word, new ArrayList<>(Arrays.asList(entry)));
                     }
-                    fileList.get(sourceFile).add(new DictionaryEntry(word, stringLongEntry.getValue()));
+                    fileList.get(sourceFile).add(new DictionaryEntry(word, stringLongEntry.getValue().intValue()));
                 });
     }
 
@@ -125,8 +126,10 @@ public class Dictionary {
         });
 
         //System.out.println(matches.values());
-        return matches.values().stream()
-                .sorted((r1, r2) -> Integer.compare(r2.getScore(searchTermsFiltered.size()), r1.getScore(searchTermsFiltered.size()))) // desc order
+        ArrayList<SearchResult> resultsList = new ArrayList<>(matches.values());
+
+        return resultsList.stream()
+                .sorted((r1, r2) -> Integer.compare(r2.getScore(searchTermsFiltered.size(), resultsList.get(0)), r1.getScore(searchTermsFiltered.size(), resultsList.get(0)))) // desc order
                 .limit(maxResults)
                 .collect(toList());
     }
@@ -138,14 +141,14 @@ public class Dictionary {
 
         // all words must be present in a file
         return search(searchTerms, getFileCount()).stream()
-                .filter(searchResult -> searchResult.getScore(searchTerms.size()) == SearchResult.TOP_SCORE)
+                .filter(searchResult -> searchResult.getMatches().size() == searchTerms.size())
                 .map(SearchResult::getFileName)
                 .map(fileName -> {
                     List<DictionaryEntry> entries = fileList.get(fileName);
                     return entries.subList(0, entries.size() > suggestions ? suggestions : entries.size());
                 }) // get word lists for each file
                 .flatMap(Collection::stream)
-                .collect(Collectors.toMap(DictionaryEntry::getName, DictionaryEntry::getReferenceCount, Long::sum)) // merge into single map summarizing total references
+                .collect(Collectors.toMap(DictionaryEntry::getName, DictionaryEntry::getReferenceCount, Integer::sum)) // merge into single map summarizing total references
                 .entrySet().stream()
                 .filter(entry -> !lowerCasedSearchTerms.contains(entry.getKey())) // filter out words in original query
                 .sorted((r1, r2) -> Long.compare(r2.getValue(), r1.getValue())) // number or references in desc order

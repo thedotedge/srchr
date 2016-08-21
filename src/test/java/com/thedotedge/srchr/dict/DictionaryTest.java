@@ -1,5 +1,6 @@
 package com.thedotedge.srchr.dict;
 
+import com.thedotedge.srchr.dict.search.SearchResult;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -84,14 +85,16 @@ public class DictionaryTest {
     }
 
     @Test
-    public void shouldReturn100RelevanceIfAllTermsPresent() {
+    public void shouldReturn100RelevanceIfAllTermsPresentForTopResult() {
         loadFileOne();
         loadFileTwo();
         List<String> searchWords = Arrays.asList("Hash", "table", "Map");
-        SearchResult topMatch = dict.search(searchWords, MAX_HITS).get(0);
-        assertEquals(100, topMatch.getScore(searchWords.size()));
+        List<SearchResult> matches = dict.search(searchWords, MAX_HITS);
+        SearchResult topMatch = matches.get(0);
+        assertEquals(100, topMatch.getScore(searchWords.size(), topMatch));
         assertEquals(FILE_ONE, topMatch.getFileName());
     }
+
 
     @Test
     public void shouldUnloadFile() {
@@ -166,5 +169,18 @@ public class DictionaryTest {
         List<String> suggestions = dict.suggest(searchWords, 3);
         assertTrue(suggestions.isEmpty());
     }
+
+    @Test
+    public void shouldRankFullMatchesBasedOnFrequency() {
+        loadFileOne();
+        loadFileTwo();
+        List<String> searchWords = Arrays.asList("implementation", "hash");
+
+        List<SearchResult> matches = dict.search(searchWords, MAX_HITS);
+        SearchResult topResult = matches.get(0);
+        assertEquals(100, topResult.getScore(searchWords.size(), topResult));
+        assertEquals(75, matches.get(1).getScore(searchWords.size(), topResult));
+    }
+
 
 }

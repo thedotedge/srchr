@@ -6,9 +6,9 @@ package com.thedotedge.srchr.dict;
 public class DictionaryEntry {
 
     private String name;
-    private Long referenceCount;
+    private int referenceCount;
 
-    public DictionaryEntry(String name, Long referenceCount) {
+    public DictionaryEntry(String name, int referenceCount) {
         this.name = name;
         this.referenceCount = referenceCount;
     }
@@ -17,7 +17,7 @@ public class DictionaryEntry {
         return name;
     }
 
-    public Long getReferenceCount() {
+    public int getReferenceCount() {
         return referenceCount;
     }
 
