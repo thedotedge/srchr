@@ -20,6 +20,10 @@ public class SearchResult {
         matches.add(new DictionaryEntry(word, referenceCount));
     }
 
+    public List<DictionaryEntry> getMatches() {
+        return matches;
+    }
+
     public String getFileName() {
         return fileName;
     }

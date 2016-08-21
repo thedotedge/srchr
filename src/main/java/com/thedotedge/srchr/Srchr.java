@@ -7,12 +7,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Hello world!
  */
 public class Srchr {
     private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_RED = "\u001B[31m";
     private static final String ANSI_CYAN = "\u001B[36m";
     /**
      * Limit the search results return
@@ -44,7 +46,14 @@ public class Srchr {
             switch (tokens[0]) {
                 case ":search":
                     Collection<SearchResult> matches = dict.search(params, MAX_HITS);
-                    matches.forEach(m -> System.out.printf("%s -> %d%%\n", m.getFileName(), m.getScore(params.size())));
+                    if (!matches.isEmpty()) {
+                        matches.forEach(m -> System.out.printf("%s -> %d%% (%s)\n", m.getFileName(), m.getScore(params.size()), m.getMatches().stream()
+                                .map(entry -> String.format("%s: %d hits", entry.getName(), entry.getReferenceCount()))
+                                .collect(Collectors.joining(", "))
+                        ));
+                    } else {
+                        System.out.println("No matches found");
+                    }
                     break;
                 case ":add":
                     dict.addFiles(params);
@@ -61,7 +70,7 @@ public class Srchr {
                     System.out.println("TODO suggest");
                     break;
                 default:
-                    System.out.println("Sorry, I don't understand the command, try :search, :add, :rm or :suggest");
+                    System.out.println(ANSI_RED + "Sorry, I don't understand the command. Supported commands are :search, :add, :rm, :ls and :suggest" + ANSI_RESET);
             }
 
         }

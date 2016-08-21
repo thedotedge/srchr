@@ -7,7 +7,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Created by oleg on 19/08/16.
+ * Dictionary is maintained as a map of word of dictionary entries.
+ * Each dictionary entry is a a file name and number of references in that file.
  */
 public class Dictionary {
     /**
@@ -101,8 +102,7 @@ public class Dictionary {
             }
         });
 
-        System.out.println(matches.values());
-
+        //System.out.println(matches.values());
         return matches.values().stream()
                 .sorted((r1, r2) -> Integer.compare(r2.getScore(searchTerms.size()), r1.getScore(searchTerms.size()))) // desc order
                 .limit(maxResults)
