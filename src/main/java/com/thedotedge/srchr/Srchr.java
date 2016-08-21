@@ -14,6 +14,10 @@ import java.util.*;
 public class Srchr {
     private static final String ANSI_RESET = "\u001B[0m";
     private static final String ANSI_CYAN = "\u001B[36m";
+    /**
+     * Limit the search results return
+     */
+    private static final int MAX_HITS = 10;
 
     public static void main(String[] args) {
 
@@ -39,11 +43,11 @@ public class Srchr {
             params.remove(0);
             switch (tokens[0]) {
                 case ":search":
-                    Collection<SearchResult> matches = dict.search(params);
+                    Collection<SearchResult> matches = dict.search(params, MAX_HITS);
                     matches.forEach(m -> System.out.printf("%s -> %d%%\n", m.getFileName(), m.getScore(params.size())));
                     break;
                 case ":add":
-                    System.out.println("TODO add");
+                    dict.addFiles(params);
                     System.out.println(dict.getStatsMessage());
                     break;
                 case ":rm":
@@ -75,7 +79,7 @@ public class Srchr {
                     .filter(Files::isReadable)
                     .map(path -> {
                         try {
-                            dict.loadFile(path.toFile());
+                            dict.loadFile(path.toFile().getCanonicalPath());
                         } catch (IOException e) {
                             System.out.println("Can't load file: " + e.getMessage());
                         }

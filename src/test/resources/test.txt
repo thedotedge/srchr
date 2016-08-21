@@ -1,1 +1,1 @@
-Hash table is implementation of the Map interface. Hash table is not a list or !#@
+Hash table is implementation of the Map interface. Hash table is not a list, set or !#@

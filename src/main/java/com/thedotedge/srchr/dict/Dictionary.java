@@ -2,8 +2,6 @@ package com.thedotedge.srchr.dict;
 
 import com.thedotedge.srchr.io.FileUtils;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -16,8 +14,7 @@ public class Dictionary {
      * Word -> dictionary entries
      */
     private Map<String, List<DictionaryEntry>> wordList = new HashMap<>();
-    private List<String> fileList = new LinkedList<>();
-    private static final int MAX_HITS = 10;
+    private Set<String> fileList = new HashSet<>();
 
     void addWords(List<String> words, String sourceFile) {
         words.stream()
@@ -56,24 +53,34 @@ public class Dictionary {
     /**
      * Load words from path into dictionary
      *
-     * @param path text path
+     * @param sourceFile text path
      */
-    public void loadFile(File file) throws IOException {
-        List<String> words = FileUtils.extractWords(file);
-        this.addWords(words, file.getCanonicalPath());
+    public void loadFile(String sourceFile) {
+        List<String> words = FileUtils.extractWords(sourceFile);
+        this.addWords(words, sourceFile);
     }
 
-    public void unloadFiles(List<String> filenames) {
-        filenames.stream()
+    public void unloadFiles(List<String> sourceFiles) {
+        sourceFiles.stream()
                 .map(String::trim)
                 .forEach(this::removeWords);
     }
 
-    public List<String> getFileList() {
+    /**
+     * Unloads the file first in case it's contents have changed
+     *
+     * @param sourceFiles list of absolute file paths
+     */
+    public void addFiles(List<String> sourceFiles) {
+        unloadFiles(sourceFiles);
+        sourceFiles.forEach(this::loadFile);
+    }
+
+    public Set<String> getFileList() {
         return fileList;
     }
 
-    public List<SearchResult> search(List<String> searchTerms) {
+    public List<SearchResult> search(List<String> searchTerms, int maxResults) {
         if (searchTerms.size() == 0 || wordList.size() == 0) {
             return new ArrayList<>();
         }
@@ -98,7 +105,7 @@ public class Dictionary {
 
         return matches.values().stream()
                 .sorted((r1, r2) -> Integer.compare(r2.getScore(searchTerms.size()), r1.getScore(searchTerms.size()))) // desc order
-                .limit(MAX_HITS)
+                .limit(maxResults)
                 .collect(Collectors.toList());
     }
 
@@ -120,4 +127,5 @@ public class Dictionary {
                 "totalWords=" + wordList.size() +
                 '}';
     }
+
 }
