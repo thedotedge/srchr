@@ -32,7 +32,7 @@ public class Dictionary {
     void addWords(List<String> words, String sourceFile) {
         fileList.put(sourceFile, new LinkedList<>());
         words.stream()
-                .filter(word -> word.length() > 1 && !stopWords.contains(word.toLowerCase())) // we assume a word has at least 2 letters and we skip stopwords
+                .filter(word -> word.length() > 1 && !stopWords.contains(word.toLowerCase())) // we assume a word has at least 2 letters and we skip stop words
                 .map(String::toLowerCase)
                 .collect(
                         groupingBy(Function.identity(), Collectors.counting())
@@ -45,7 +45,7 @@ public class Dictionary {
                     if (wordList.containsKey(word)) {
                         wordList.get(word).add(entry);
                     } else {
-                        wordList.put(word, new ArrayList<>(Arrays.asList(entry)));
+                        wordList.put(word, new ArrayList<>(Collections.singletonList(entry)));
                     }
                     fileList.get(sourceFile).add(new DictionaryEntry(word, stringLongEntry.getValue().intValue()));
                 });

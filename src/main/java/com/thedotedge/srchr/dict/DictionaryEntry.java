@@ -5,8 +5,8 @@ package com.thedotedge.srchr.dict;
  */
 public class DictionaryEntry {
 
-    private String name;
-    private int referenceCount;
+    private final String name;
+    private final int referenceCount;
 
     public DictionaryEntry(String name, int referenceCount) {
         this.name = name;

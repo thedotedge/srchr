@@ -3,9 +3,10 @@
 ## Features
 
 * Search is case-insensitive
+* Word frequency is used a ranking factor
+* Stoplist support
 * Suggestions are based on word frequency
-* Word frequency is a ranking factor
-* Stoplist is supported
+* TODO suggestions based search history 
 
 ## Commands
 ```
@@ -18,9 +19,8 @@
 ```
 
 ## Running
-
+Make sure you have Java 8 installed
 ```
-# make sure you have Java 8 installed
 java -jar target/srchr-all.jar ./sample ./stopwords.txt
 ```
 

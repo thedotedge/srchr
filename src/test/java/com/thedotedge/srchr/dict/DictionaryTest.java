@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -80,7 +81,7 @@ public class DictionaryTest {
     public void shouldLimitResults() {
         loadFileOne();
         loadFileTwo();
-        List<String> searchWords = Arrays.asList("implementation");
+        List<String> searchWords = Collections.singletonList("implementation");
         assertEquals(1, dict.search(searchWords, 1).size());
     }
 
@@ -100,7 +101,7 @@ public class DictionaryTest {
     public void shouldUnloadFile() {
         loadFileOne();
         loadFileTwo();
-        dict.unloadFiles(Arrays.asList(FILE_ONE));
+        dict.unloadFiles(Collections.singletonList(FILE_ONE));
         assertEquals(2, dict.getWordCount());
     }
 
@@ -127,11 +128,11 @@ public class DictionaryTest {
         Path fileTwo = new File("./src/test/resources/test2.txt").toPath();
         Files.copy(fileTwo, tempFile, StandardCopyOption.REPLACE_EXISTING);
         // reload the dic
-        dict.addFiles(Arrays.asList(tempFile.toFile().getCanonicalPath()));
+        dict.addFiles(Collections.singletonList(tempFile.toFile().getCanonicalPath()));
 
         assertEquals(1, dict.getFileCount());
 
-        List<String> searchWords = Arrays.asList("implementation");
+        List<String> searchWords = Collections.singletonList("implementation");
         assertTrue(dict.search(searchWords, MAX_HITS).isEmpty());
 
         searchWords = Arrays.asList("Less", "content", "file");
@@ -154,7 +155,7 @@ public class DictionaryTest {
     public void shouldSuggest() {
         loadFileOne();
         loadFileTwo();
-        List<String> searchWords = Arrays.asList("Implementation");
+        List<String> searchWords = Collections.singletonList("Implementation");
         List<String> suggestions = dict.suggest(searchWords, 3);
         assertEquals(3, suggestions.size());
         assertEquals("hash", suggestions.get(0));

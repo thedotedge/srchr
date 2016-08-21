@@ -3,18 +3,16 @@ package com.thedotedge.srchr.dict.search;
 import com.thedotedge.srchr.dict.DictionaryEntry;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Search result contains a filename and matches found it in
  */
 public class SearchResult {
 
-    public static final int TOP_SCORE = 100;
+    private static final int TOP_SCORE = 100;
 
-    private String fileName;
+    private final String fileName;
     private List<DictionaryEntry> matches = new ArrayList<>();
 
     public SearchResult(String fileName, String word, Integer referenceCount) {
@@ -55,14 +53,6 @@ public class SearchResult {
         } else {
             return TOP_SCORE * matches.size() / totalSearchTerms;
         }
-    }
-
-    public static int getMaxHits(Collection<SearchResult> results) {
-        Optional<Integer> max = results.stream()
-                .map(searchResult ->
-                        searchResult.getMatches().stream().mapToInt(DictionaryEntry::getReferenceCount).sum())
-                .max(Integer::compareTo);
-        return max.orElse(0);
     }
 
     @Override

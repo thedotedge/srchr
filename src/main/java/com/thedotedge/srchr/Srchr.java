@@ -90,9 +90,7 @@ public class Srchr {
                     List<String> suggestions = dict.suggest(params, suggestionCount);
                     if (suggestions.size() > 0) {
                         String paramsString = params.stream().collect(Collectors.joining(" "));
-                        suggestions.forEach(s -> {
-                            System.out.printf("%s %s\n", paramsString, s);
-                        });
+                        suggestions.forEach(s -> System.out.printf("%s %s\n", paramsString, s));
                     }
                     break;
                 default:
