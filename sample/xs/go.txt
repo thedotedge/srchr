@@ -1,0 +1,18 @@
+Go is recognizably in the tradition of C, but makes many changes to improve conciseness, simplicity, and safety. The following is a brief overview of the features which define Go:
+
+A syntax and environment adopting patterns more common in dynamic languages:[26]
+Optional concise variable declaration and initialization through type inference (x := 0 not var x int = 0;).
+Fast compilation times.[27]
+Remote package management (go get)[28] and online package documentation.[29]
+Distinctive approaches to particular problems:
+Built-in concurrency primitives: light-weight processes (goroutines), channels, and the select statement.
+An interface system in place of virtual inheritance, and type embedding instead of non-virtual inheritance.
+A toolchain that, by default, produces statically linked native binaries without external dependencies.
+A desire to keep the language specification simple enough to hold in a programmer's head,[30] in part by omitting features common to similar languages; see § Omissions.
+Frequent criticisms assert that:
+
+lack of compile-time generics leads to code duplication, metaprogramming cannot be statically checked[31][32] and standard library cannot offer generic algorithms[33]
+lack of language extensibility (through, for instance, operator overloading) makes certain tasks more verbose[34][31]
+the type system's lack of Hindley-Milner typing inhibits safety and/or expressiveness[35][36]
+the pauses and overhead of garbage collection limit Go's use in systems programming compared to languages with manual memory management[31][35]
+The language designers argue that these trade-offs are important to Go's success,[37] and explain some particular decisions at length,[38] though they do express openness to adding some form of generic programming in the future, and to pragmatic improvements in areas like standardizing ways to apply code generation[39] and reducing garbage collection pause times.[40]
