@@ -41,6 +41,22 @@ public class DictionaryTest {
     }
 
     @Test
+    public void shouldNotAddDuplicatesAddWords() {
+        List<String> words = Arrays.asList("implementation", "inevitable", "implementation");
+        dict.addWords(words, FILE_ONE);
+        assertEquals(2, dict.getWordCount());
+        assertEquals(1, dict.getFileCount());
+    }
+
+    @Test
+    public void shouldSupportUnicode() {
+        List<String> words = Arrays.asList("Fårikål", "выбор");
+        dict.addWords(words, FILE_ONE);
+        assertEquals(2, dict.getWordCount());
+        assertEquals(1, dict.search(words, MAX_HITS).size());
+    }
+
+    @Test
     public void shouldSkipOneLetters() {
         List<String> words = Arrays.asList("a", "b", "c", "dd");
         dict.addWords(words, FILE_ONE);
@@ -160,6 +176,15 @@ public class DictionaryTest {
         assertEquals(3, suggestions.size());
         assertEquals("hash", suggestions.get(0));
         assertFalse(suggestions.contains("implementation"));
+    }
+
+    @Test
+    public void shouldSuggestOnlyIfAllWordsAreInTheSameFile() {
+        loadFileOne();
+        loadFileTwo();
+        List<String> searchWords = Arrays.asList("table", "inevitable");
+        List<String> suggestions = dict.suggest(searchWords, 3);
+        assertTrue(suggestions.isEmpty());
     }
 
     @Test

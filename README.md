@@ -6,7 +6,8 @@
 * Word frequency is used a ranking factor
 * Stoplist support
 * Suggestions are based on word frequency
-* TODO suggestions based search history 
+* Supports unicode
+* TODO suggestions based on search history
 
 ## Commands
 ```

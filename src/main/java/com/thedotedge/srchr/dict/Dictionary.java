@@ -11,18 +11,23 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Dictionary is maintained as a map of word of dictionary entries.
- * Each dictionary entry is a a file name and number of references in that file.
+ * Dictionary is maintained as a map of word to dictionary entries.
+ * Each dictionary entry is a file name and number of references in that file.
  */
 public class Dictionary {
     /**
-     * Word -> dictionary entries
+     * Word -> list of dictionary entries (filename => number of occurrences)
      */
     private Map<String, List<DictionaryEntry>> wordList = new HashMap<>();
+    /**
+     * Filename -> list of dictionary entries (word => number of occurrences) order by number of occurrences.
+     * Used for frequency based suggestions.
+     */
     private Map<String, List<DictionaryEntry>> fileList = new HashMap<>();
     private List<String> stopWords = new ArrayList<>();
 
     public Dictionary() {
+        // no stop words
     }
 
     public Dictionary(List<String> stopWords) {
@@ -31,8 +36,10 @@ public class Dictionary {
 
     void addWords(List<String> words, String sourceFile) {
         fileList.put(sourceFile, new LinkedList<>());
-        words.stream()
-                .filter(word -> word.length() > 1 && !stopWords.contains(word.toLowerCase())) // we assume a word has at least 2 letters and we skip stop words
+
+        List<String> filteredWords = filterOutStopWords(words);
+
+        filteredWords.stream()
                 .map(String::toLowerCase)
                 .collect(
                         groupingBy(Function.identity(), Collectors.counting())
@@ -135,7 +142,7 @@ public class Dictionary {
     }
 
     public List<String> suggest(List<String> searchTerms, int suggestions) {
-        List<String> lowerCasedSearchTerms = searchTerms.stream()
+        List<String> lowerCasedSearchTerms = searchTerms.parallelStream()
                 .map(String::toLowerCase)
                 .collect(Collectors.toList());
 
@@ -154,6 +161,18 @@ public class Dictionary {
                 .sorted((r1, r2) -> Long.compare(r2.getValue(), r1.getValue())) // number or references in desc order
                 .limit(suggestions)
                 .map(Map.Entry::getKey)
+                .collect(toList());
+    }
+
+
+    /**
+     * Use stopword list and remove all single chars
+     * @param words word list
+     * @return
+     */
+    public List<String> filterOutStopWords(List<String> words) {
+        return words.parallelStream()
+                .filter(word -> word.length() > 1 && !stopWords.contains(word.toLowerCase()))
                 .collect(toList());
     }
 

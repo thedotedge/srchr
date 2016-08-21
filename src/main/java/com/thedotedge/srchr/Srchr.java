@@ -51,14 +51,16 @@ public class Srchr {
             }
 
             List<String> params = new ArrayList<>(Arrays.asList(tokens));
-            params.remove(0);
+            List<String> searchWords;
+            params.remove(0); // first word is command, so we skip it
             switch (tokens[0]) {
                 case ":search":
                     stopWatch.start();
-                    List<SearchResult> results = dict.search(params, MAX_HITS);
+                    searchWords = dict.filterOutStopWords(params); // we need to skip stop words from search and ranking
+                    List<SearchResult> results = dict.search(searchWords, MAX_HITS);
                     if (!results.isEmpty()) {
                         System.out.printf("Done in %s\n", stopWatch);
-                        results.forEach(m -> System.out.printf("%s -> %d%% (%s)\n", m.getFileName(), m.getScore(params.size(), results.get(0)), m.getMatches().stream()
+                        results.forEach(m -> System.out.printf("%s -> %d%% (%s)\n", m.getFileName(), m.getScore(searchWords.size(), results.get(0)), m.getMatches().stream()
                                 .map(entry -> String.format("%s: %d hits", entry.getName(), entry.getReferenceCount()))
                                 .collect(Collectors.joining(", "))
                         ));
@@ -81,13 +83,14 @@ public class Srchr {
                 case ":suggest":
                     int suggestionCount;
                     try {
-                        suggestionCount = Integer.parseInt(params.get(0));
+                        suggestionCount = Integer.parseInt(tokens[1]);
                     } catch (NumberFormatException e) {
                         printError("Invalid number of suggestions");
                         break;
                     }
                     params.remove(0); // first after command is number of suggestions, not a search term
-                    List<String> suggestions = dict.suggest(params, suggestionCount);
+                    searchWords = dict.filterOutStopWords(params);
+                    List<String> suggestions = dict.suggest(searchWords, suggestionCount);
                     if (suggestions.size() > 0) {
                         String paramsString = params.stream().collect(Collectors.joining(" "));
                         suggestions.forEach(s -> System.out.printf("%s %s\n", paramsString, s));
