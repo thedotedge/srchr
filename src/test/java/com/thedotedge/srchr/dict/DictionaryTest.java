@@ -73,4 +73,20 @@ public class DictionaryTest {
         assertEquals(FILE_ONE, topMatch.getFileName());
     }
 
+    @Test
+    public void shouldUnloadFile() {
+        loadFileOne();
+        loadFileTwo();
+        dict.unloadFiles(Arrays.asList(FILE_ONE));
+        assertEquals(2, dict.getWordCount());
+    }
+
+    @Test
+    public void shouldUnloadAllFiles() {
+        loadFileOne();
+        loadFileTwo();
+        dict.unloadFiles(Arrays.asList(FILE_ONE, FILE_TWO));
+        assertEquals(0, dict.getWordCount());
+    }
+
 }

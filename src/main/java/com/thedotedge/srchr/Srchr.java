@@ -35,11 +35,6 @@ public class Srchr {
                 System.exit(0);
             }
 
-            // command has at least one parameter
-            if (tokens.length > 1) {
-                continue;
-            }
-
             List<String> params = new ArrayList<>(Arrays.asList(tokens));
             params.remove(0);
             switch (tokens[0]) {
@@ -49,9 +44,14 @@ public class Srchr {
                     break;
                 case ":add":
                     System.out.println("TODO add");
+                    System.out.println(dict.getStatsMessage());
                     break;
                 case ":rm":
-                    System.out.println("TODO remove");
+                    dict.unloadFiles(params);
+                    System.out.println(dict.getStatsMessage());
+                    break;
+                case ":ls":
+                    dict.getFileList().forEach(System.out::println);
                     break;
                 case ":suggest":
                     System.out.println("TODO suggest");

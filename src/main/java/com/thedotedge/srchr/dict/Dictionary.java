@@ -16,6 +16,7 @@ public class Dictionary {
      * Word -> dictionary entries
      */
     private Map<String, List<DictionaryEntry>> wordList = new HashMap<>();
+    private List<String> fileList = new LinkedList<>();
     private static final int MAX_HITS = 10;
 
     void addWords(List<String> words, String sourceFile) {
@@ -31,8 +32,26 @@ public class Dictionary {
                 wordList.put(word, new ArrayList<>(Arrays.asList(entry)));
             }
         });
+        fileList.add(sourceFile);
     }
 
+
+    void removeWords(String sourceFile) {
+        // less elegant then streams, but we only iterate word list once
+        for (Iterator wordIterator = wordList.entrySet().iterator(); wordIterator.hasNext(); ) {
+            Map.Entry nextWord = (Map.Entry) wordIterator.next();
+            for (Iterator<DictionaryEntry> iterator = ((List<DictionaryEntry>) nextWord.getValue()).iterator(); iterator.hasNext(); ) {
+                DictionaryEntry nextDictionaryEntry = iterator.next();
+                if (nextDictionaryEntry.getName().equals(sourceFile)) {
+                    iterator.remove();
+                }
+            }
+            if (((List<DictionaryEntry>) nextWord.getValue()).size() == 0) {
+                wordIterator.remove();
+            }
+        }
+        fileList.remove(sourceFile);
+    }
 
     /**
      * Load words from path into dictionary
@@ -44,6 +63,15 @@ public class Dictionary {
         this.addWords(words, file.getCanonicalPath());
     }
 
+    public void unloadFiles(List<String> filenames) {
+        filenames.stream()
+                .map(String::trim)
+                .forEach(this::removeWords);
+    }
+
+    public List<String> getFileList() {
+        return fileList;
+    }
 
     public List<SearchResult> search(List<String> searchTerms) {
         if (searchTerms.size() == 0 || wordList.size() == 0) {
@@ -70,11 +98,20 @@ public class Dictionary {
 
         return matches.values().stream()
                 .sorted((r1, r2) -> Integer.compare(r2.getScore(searchTerms.size()), r1.getScore(searchTerms.size()))) // desc order
+                .limit(MAX_HITS)
                 .collect(Collectors.toList());
     }
 
     public long getWordCount() {
         return wordList.size();
+    }
+
+    public long getFileCount() {
+        return fileList.size();
+    }
+
+    public String getStatsMessage() {
+        return String.format("Dictionary stats: %d words in %d files", getWordCount(), getFileCount());
     }
 
     @Override
