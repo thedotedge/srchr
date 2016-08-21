@@ -1,6 +1,8 @@
 package com.thedotedge.srchr;
 
+import com.thedotedge.srchr.dict.Dictionary;
 import com.thedotedge.srchr.dict.SearchResult;
+import com.thedotedge.srchr.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
 
 import java.io.IOException;
@@ -23,18 +25,25 @@ public class Srchr {
 
     public static void main(String[] args) {
 
-        if (args.length != 1) {
-            System.out.println("Please pass folder with dictionary files, for example ~/dict");
+        if (args.length == 0) {
+            System.out.println("Please pass a folder containing dictionary files, for example ~/dict");
             System.exit(1);
         }
 
-        com.thedotedge.srchr.dict.Dictionary dict = populateDictionary(args[0]);
+        String dicDir = args[0];
+        String stopWordsFile = null;
+        if (args.length == 2) {
+            stopWordsFile = args[1];
+        }
 
+        Dictionary dict = populateDictionary(dicDir, stopWordsFile);
+        StopWatch stopWatch = new StopWatch();
         Scanner scanner = new Scanner(System.in);
+
         while (true) {
             System.out.print(ANSI_CYAN + ">> " + ANSI_RESET);
 
-            String[] tokens = scanner.nextLine().trim().split("\\s+");
+            String[] tokens = scanner.nextLine().trim().toLowerCase().split("\\s+");
 
             if (":exit".equals(tokens[0]) || ":quit".equals(tokens[0])) {
                 System.out.println("Bye!");
@@ -45,8 +54,10 @@ public class Srchr {
             params.remove(0);
             switch (tokens[0]) {
                 case ":search":
+                    stopWatch.start();
                     Collection<SearchResult> matches = dict.search(params, MAX_HITS);
                     if (!matches.isEmpty()) {
+                        System.out.printf("Done in %s\n", stopWatch);
                         matches.forEach(m -> System.out.printf("%s -> %d%% (%s)\n", m.getFileName(), m.getScore(params.size()), m.getMatches().stream()
                                 .map(entry -> String.format("%s: %d hits", entry.getName(), entry.getReferenceCount()))
                                 .collect(Collectors.joining(", "))
@@ -54,6 +65,7 @@ public class Srchr {
                     } else {
                         System.out.println("No matches found");
                     }
+                    stopWatch.reset();
                     break;
                 case ":add":
                     dict.addFiles(params);
@@ -67,18 +79,44 @@ public class Srchr {
                     dict.getFileList().forEach(System.out::println);
                     break;
                 case ":suggest":
-                    System.out.println("TODO suggest");
+                    int suggestionCount;
+                    try {
+                        suggestionCount = Integer.parseInt(params.get(0));
+                    } catch (NumberFormatException e) {
+                        printError("Invalid number of suggestions");
+                        break;
+                    }
+                    params.remove(0); // first after command is number of suggestions, not a search term
+                    List<String> suggestions = dict.suggest(params, suggestionCount);
+                    if (suggestions.size() > 0) {
+                        String paramsString = params.stream().collect(Collectors.joining(" "));
+                        suggestions.forEach(s -> {
+                            System.out.printf("%s %s\n", paramsString, s);
+                        });
+                    }
                     break;
                 default:
-                    System.out.println(ANSI_RED + "Sorry, I don't understand the command. Supported commands are :search, :add, :rm, :ls and :suggest" + ANSI_RESET);
+                    printError("Sorry, I don't understand the command. Supported commands are :search, :add, :rm, :ls and :suggest");
             }
 
         }
 
     }
 
-    private static com.thedotedge.srchr.dict.Dictionary populateDictionary(String filesPath) {
-        com.thedotedge.srchr.dict.Dictionary dict = new com.thedotedge.srchr.dict.Dictionary();
+    private static void printError(String text) {
+        System.out.println(ANSI_RED + text + ANSI_RESET);
+    }
+
+    private static Dictionary populateDictionary(String filesPath, String stopWordsFile) {
+        Dictionary dict;
+        List<String> stopWords = new ArrayList<>();
+        if (stopWordsFile != null) {
+            stopWords = FileUtils.extractWords(stopWordsFile);
+            dict = new Dictionary(stopWords);
+        } else {
+            dict = new Dictionary();
+        }
+
         long totalFiles = 0;
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
@@ -101,7 +139,7 @@ public class Srchr {
         }
 
         stopWatch.stop();
-        System.out.printf("Loaded %d words from %d files in %d ms\n", dict.getWordCount(), totalFiles, stopWatch.getTime());
+        System.out.printf("Loaded %d words from %d files (using %d stopwords) in %s\n", dict.getWordCount(), totalFiles, stopWords.size(), stopWatch);
 
         return dict;
     }

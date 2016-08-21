@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by oleg on 20/08/16.
+ * Search result contains a filname and matches found it in
  */
 public class SearchResult {
+
+    public static final int TOP_SCORE = 100;
 
     private String fileName;
     private List<DictionaryEntry> matches = new ArrayList<>();
@@ -29,7 +31,7 @@ public class SearchResult {
     }
 
     public int getScore(int totalSearchTerms) {
-        return 100 * matches.size() / totalSearchTerms;
+        return TOP_SCORE * matches.size() / totalSearchTerms;
     }
 
     @Override

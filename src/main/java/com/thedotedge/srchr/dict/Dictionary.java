@@ -6,6 +6,9 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+
 /**
  * Dictionary is maintained as a map of word of dictionary entries.
  * Each dictionary entry is a a file name and number of references in that file.
@@ -15,26 +18,40 @@ public class Dictionary {
      * Word -> dictionary entries
      */
     private Map<String, List<DictionaryEntry>> wordList = new HashMap<>();
-    private Set<String> fileList = new HashSet<>();
+    private Map<String, List<DictionaryEntry>> fileList = new HashMap<>();
+    private List<String> stopWords = new ArrayList<>();
+
+    public Dictionary() {
+    }
+
+    public Dictionary(List<String> stopWords) {
+        this.stopWords = stopWords;
+    }
 
     void addWords(List<String> words, String sourceFile) {
+        fileList.put(sourceFile, new LinkedList<>());
         words.stream()
-                .filter(s -> s.length() > 1) // we assume a word has at least 2 letters
+                .filter(word -> word.length() > 1 && !stopWords.contains(word.toLowerCase())) // we assume a word has at least 2 letters and we skip stopwords
+                .map(String::toLowerCase)
                 .collect(
-                        Collectors.groupingBy(Function.identity(), Collectors.counting())
-                ).forEach((word, refs) -> {
-            DictionaryEntry entry = new DictionaryEntry(sourceFile, refs);
-            if (wordList.containsKey(word)) {
-                wordList.get(word).add(entry);
-            } else {
-                wordList.put(word, new ArrayList<>(Arrays.asList(entry)));
-            }
-        });
-        fileList.add(sourceFile);
+                        groupingBy(Function.identity(), Collectors.counting())
+                )
+                .entrySet().stream()
+                .sorted((r1, r2) -> Long.compare(r2.getValue(), r1.getValue())) // number or references in desc order
+                .forEach(stringLongEntry -> {
+                    String word = stringLongEntry.getKey();
+                    DictionaryEntry entry = new DictionaryEntry(sourceFile, stringLongEntry.getValue());
+                    if (wordList.containsKey(word)) {
+                        wordList.get(word).add(entry);
+                    } else {
+                        wordList.put(word, new ArrayList<>(Arrays.asList(entry)));
+                    }
+                    fileList.get(sourceFile).add(new DictionaryEntry(word, stringLongEntry.getValue()));
+                });
     }
 
 
-    void removeWords(String sourceFile) {
+    private void removeWords(String sourceFile) {
         // less elegant then streams, but we only iterate word list once
         for (Iterator wordIterator = wordList.entrySet().iterator(); wordIterator.hasNext(); ) {
             Map.Entry nextWord = (Map.Entry) wordIterator.next();
@@ -58,7 +75,7 @@ public class Dictionary {
      */
     public void loadFile(String sourceFile) {
         List<String> words = FileUtils.extractWords(sourceFile);
-        this.addWords(words, sourceFile);
+        addWords(words, sourceFile);
     }
 
     public void unloadFiles(List<String> sourceFiles) {
@@ -78,18 +95,23 @@ public class Dictionary {
     }
 
     public Set<String> getFileList() {
-        return fileList;
+        return fileList.keySet();
     }
 
-    public List<SearchResult> search(List<String> searchTerms, int maxResults) {
-        if (searchTerms.size() == 0 || wordList.size() == 0) {
+    public List<SearchResult> search(List<String> searchWords, int maxResults) {
+        if (searchWords.size() == 0 || wordList.size() == 0) {
             return new ArrayList<>();
         }
 
+        // remove stop words from search
+        final List<String> searchTermsFiltered = searchWords.stream()
+                .filter(term -> !stopWords.contains(term.toLowerCase()))
+                .collect(toList());
+
         Map<String, SearchResult> matches = new LinkedHashMap<>();
 
-        searchTerms.forEach(word -> {
-            List<DictionaryEntry> entries = wordList.get(word);
+        searchTermsFiltered.forEach(word -> {
+            List<DictionaryEntry> entries = wordList.get(word.toLowerCase());
             if (entries != null) { // word found in dictionary
                 entries.forEach(entry -> {
                     if (!matches.containsKey(entry.getName())) { // file not yet listed in matches
@@ -104,16 +126,44 @@ public class Dictionary {
 
         //System.out.println(matches.values());
         return matches.values().stream()
-                .sorted((r1, r2) -> Integer.compare(r2.getScore(searchTerms.size()), r1.getScore(searchTerms.size()))) // desc order
+                .sorted((r1, r2) -> Integer.compare(r2.getScore(searchTermsFiltered.size()), r1.getScore(searchTermsFiltered.size()))) // desc order
                 .limit(maxResults)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
+
+    public List<String> suggest(List<String> searchTerms, int suggestions) {
+        List<String> lowerCasedSearchTerms = searchTerms.stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toList());
+
+        // all words must be present in a file
+        return search(searchTerms, getFileCount()).stream()
+                .filter(searchResult -> searchResult.getScore(searchTerms.size()) == SearchResult.TOP_SCORE)
+                .map(SearchResult::getFileName)
+                .map(fileName -> {
+                    List<DictionaryEntry> entries = fileList.get(fileName);
+                    return entries.subList(0, entries.size() > suggestions ? suggestions : entries.size());
+                }) // get word lists for each file
+                .flatMap(Collection::stream)
+                .collect(Collectors.toMap(DictionaryEntry::getName, DictionaryEntry::getReferenceCount, Long::sum)) // merge into single map summarizing total references
+                .entrySet().stream()
+                .filter(entry -> !lowerCasedSearchTerms.contains(entry.getKey())) // filter out words in original query
+                .sorted((r1, r2) -> Long.compare(r2.getValue(), r1.getValue())) // number or references in desc order
+                .limit(suggestions)
+                .map(Map.Entry::getKey)
+                .collect(toList());
+    }
+
+    public boolean contains(String word) {
+        return wordList.containsKey(word.toLowerCase());
+    }
+
 
     public long getWordCount() {
         return wordList.size();
     }
 
-    public long getFileCount() {
+    public int getFileCount() {
         return fileList.size();
     }
 

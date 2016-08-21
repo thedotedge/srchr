@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class DictionaryTest {
@@ -28,12 +29,12 @@ public class DictionaryTest {
     }
 
     private void loadFileOne() {
-        List<String> words = Arrays.asList("Hash", "table", "is", "implementation", "Map", "interface", "Hash", "table");
+        List<String> words = Arrays.asList("Hash", "table", "is", "implementation", "Map", "interface", "Hash", "table", "hASh");
         dict.addWords(words, FILE_ONE);
     }
 
     private void loadFileTwo() {
-        List<String> words = Arrays.asList("implementation", "inevitable");
+        List<String> words = Arrays.asList("implementation", "inevitable", "implementation");
         dict.addWords(words, FILE_TWO);
     }
 
@@ -57,6 +58,13 @@ public class DictionaryTest {
         loadFileTwo();
         List<String> searchWords = Arrays.asList("Hash", "table", "implementation");
         assertEquals(2, dict.search(searchWords, MAX_HITS).size());
+    }
+
+    @Test
+    public void shouldFindCaseInsensitive() {
+        loadFileOne();
+        List<String> searchWords = Arrays.asList("MAP", "INTERFACE");
+        assertEquals(1, dict.search(searchWords, MAX_HITS).size());
     }
 
     @Test
@@ -126,6 +134,37 @@ public class DictionaryTest {
         searchWords = Arrays.asList("Less", "content", "file");
         List<SearchResult> searchResults = dict.search(searchWords, MAX_HITS);
         assertEquals(1, searchResults.size());
+    }
+
+
+    @Test
+    public void shouldSkipStopWords() {
+        List<String> stopWords = Arrays.asList("is", "table");
+        dict = new Dictionary(stopWords);
+        loadFileOne();
+        assertFalse(dict.contains("table"));
+        assertFalse(dict.contains("is"));
+    }
+
+
+    @Test
+    public void shouldSuggest() {
+        loadFileOne();
+        loadFileTwo();
+        List<String> searchWords = Arrays.asList("Implementation");
+        List<String> suggestions = dict.suggest(searchWords, 3);
+        assertEquals(3, suggestions.size());
+        assertEquals("hash", suggestions.get(0));
+        assertFalse(suggestions.contains("implementation"));
+    }
+
+    @Test
+    public void shouldNotSuggestIfNotAllWordsFoundInSameFile() {
+        loadFileOne();
+        loadFileTwo();
+        List<String> searchWords = Arrays.asList("inevitable", "hash");
+        List<String> suggestions = dict.suggest(searchWords, 3);
+        assertTrue(suggestions.isEmpty());
     }
 
 }
