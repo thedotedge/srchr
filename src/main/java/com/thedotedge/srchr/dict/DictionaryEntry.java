@@ -23,7 +23,7 @@ public class DictionaryEntry {
 
     @Override
     public String toString() {
-        return "DictionaryEntry{" +
+        return "{" +
                 "name='" + name + '\'' +
                 ", referenceCount=" + referenceCount +
                 '}';

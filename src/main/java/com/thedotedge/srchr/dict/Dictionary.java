@@ -132,14 +132,34 @@ public class Dictionary {
             }
         });
 
-        //System.out.println(matches.values());
-        ArrayList<SearchResult> resultsList = new ArrayList<>(matches.values());
-
-        return resultsList.stream()
-                .sorted((r1, r2) -> Integer.compare(r2.getScore(searchTermsFiltered.size(), resultsList.get(0)), r1.getScore(searchTermsFiltered.size(), resultsList.get(0)))) // desc order
-                .limit(maxResults)
-                .collect(toList());
+        if (matches.isEmpty()) {
+            return new ArrayList<>();
+        } else {
+            return sortResults(matches.values(), searchTermsFiltered.size())
+                    .subList(0, matches.size() > maxResults ? maxResults : matches.size());
+        }
     }
+
+    private List<SearchResult> sortResults(Collection<SearchResult> matches, int searchWordCount) {
+        // calculate the top match
+        SearchResult topMatch = matches.iterator().next();
+        for (SearchResult match : matches) {
+            if (topMatch.compareTo(match) > 0) {
+                topMatch = match;
+            }
+        }
+
+        // assign the score
+        for (SearchResult match : matches) {
+            match.calculateScore(topMatch, searchWordCount);
+        }
+
+        // sort by score
+        LinkedList<SearchResult> sortedResults = new LinkedList<>(matches);
+        Collections.sort(sortedResults);
+        return sortedResults;
+    }
+
 
     public List<String> suggest(List<String> searchTerms, int suggestions) {
         List<String> lowerCasedSearchTerms = searchTerms.parallelStream()
@@ -148,7 +168,7 @@ public class Dictionary {
 
         // all words must be present in a file
         return search(searchTerms, getFileCount()).stream()
-                .filter(searchResult -> searchResult.getMatches().size() == searchTerms.size())
+                .filter(searchResult -> searchResult.getWordCount() == searchTerms.size())
                 .map(SearchResult::getFileName)
                 .map(fileName -> {
                     List<DictionaryEntry> entries = fileList.get(fileName);
@@ -167,6 +187,7 @@ public class Dictionary {
 
     /**
      * Use stopword list and remove all single chars
+     *
      * @param words word list
      * @return
      */

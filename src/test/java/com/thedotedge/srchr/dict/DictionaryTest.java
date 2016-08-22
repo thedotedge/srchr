@@ -108,7 +108,7 @@ public class DictionaryTest {
         List<String> searchWords = Arrays.asList("Hash", "table", "Map");
         List<SearchResult> matches = dict.search(searchWords, MAX_HITS);
         SearchResult topMatch = matches.get(0);
-        assertEquals(100, topMatch.getScore(searchWords.size(), topMatch));
+        assertEquals(100, topMatch.calculateScore(topMatch, searchWords.size()));
         assertEquals(FILE_ONE, topMatch.getFileName());
     }
 
@@ -204,8 +204,18 @@ public class DictionaryTest {
 
         List<SearchResult> matches = dict.search(searchWords, MAX_HITS);
         SearchResult topResult = matches.get(0);
-        assertEquals(100, topResult.getScore(searchWords.size(), topResult));
-        assertEquals(75, matches.get(1).getScore(searchWords.size(), topResult));
+        assertEquals(100, topResult.calculateScore(topResult, searchWords.size()));
+        assertEquals(75, matches.get(1).calculateScore(topResult, searchWords.size()));
+    }
+
+
+    @Test
+    public void shouldNotExceedTopRank() {
+        dict.addWords(Arrays.asList("aa", "bb", "cc"), "file_1");
+        dict.addWords(Arrays.asList("bb", "bb"), "file_2");
+        dict.addWords(Arrays.asList("aa", "bb", "cc", "cc"), "file_3");
+        List<SearchResult> matches = dict.search(Arrays.asList("aa", "bb", "cc"), MAX_HITS);
+        matches.forEach(searchResult -> assertTrue(searchResult.getScore() <= SearchResult.TOP_SCORE));
     }
 
 

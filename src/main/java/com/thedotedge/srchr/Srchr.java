@@ -60,7 +60,7 @@ public class Srchr {
                     List<SearchResult> results = dict.search(searchWords, MAX_HITS);
                     if (!results.isEmpty()) {
                         System.out.printf("Done in %s\n", stopWatch);
-                        results.forEach(m -> System.out.printf("%s -> %d%% (%s)\n", m.getFileName(), m.getScore(searchWords.size(), results.get(0)), m.getMatches().stream()
+                        results.forEach(m -> System.out.printf("%s -> %d%% (%s)\n", m.getFileName(), m.getScore(), m.getMatches().stream()
                                 .map(entry -> String.format("%s: %d hits", entry.getName(), entry.getReferenceCount()))
                                 .collect(Collectors.joining(", "))
                         ));
