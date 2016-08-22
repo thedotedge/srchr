@@ -7,7 +7,6 @@ import java.util.List;
 
 /**
  * Search result contains a filename and matches found.
- *
  */
 public class SearchResult implements Comparable<SearchResult> {
 
@@ -43,7 +42,7 @@ public class SearchResult implements Comparable<SearchResult> {
      * Files that contain all the search terms are also ranked by number of hits.
      * For example, if we're search for 3 words and all of 3 are found in multiple files, we take into account how many
      * times search words were mentioned in each file when calculating the score.
-     * Number of words mentioned is the primary factor, while number of references is secondary
+     * Number of words mentioned is the primary factor, while number of references is secondary.
      *
      * @param totalSearchTerms number of words searched for
      * @param topResult top match for ranking against

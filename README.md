@@ -1,10 +1,12 @@
-# Srchr: text file search engine [![Build Status](https://travis-ci.org/thedotedge/srchr.svg?branch=master)](https://travis-ci.org/thedotedge/srchr)
+# Srchr: text file search engine 
+[![Build Status](https://travis-ci.org/thedotedge/srchr.svg?branch=master)](https://travis-ci.org/thedotedge/srchr) [![Code Climate](https://codeclimate.com/github/thedotedge/srchr/badges/gpa.svg)](https://codeclimate.com/github/thedotedge/srchr) 
+
 
 ## Features
 
 * Search is case-insensitive
 * Word frequency is used a ranking factor
-* Stoplist support
+* [Stoplist](stopwords.txt) support
 * Suggestions are based on word frequency
 * Supports unicode
 * TODO suggestions based on search history
@@ -20,8 +22,9 @@
 ```
 
 ## Running
-Make sure you have Java 8 installed
+Make sure you have Java 8 installed.
 ```
+#java -jar target/srchr-all.jar <path to dictionary file> <optional path to stopwords file>
 java -jar target/srchr-all.jar ./sample ./stopwords.txt
 ```
 

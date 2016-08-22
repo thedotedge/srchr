@@ -13,6 +13,9 @@ import static java.util.stream.Collectors.toList;
 /**
  * Dictionary is maintained as a map of word to dictionary entries.
  * Each dictionary entry is a file name and number of references in that file.
+ *
+ * Absolute canonical path is use as a key in dictionary entries so that we can load files with the same name from
+ * different folders.
  */
 public class Dictionary {
     /**
