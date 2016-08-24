@@ -43,7 +43,7 @@ public class Srchr {
         while (true) {
             System.out.print(ANSI_CYAN + ">> " + ANSI_RESET);
 
-            String[] tokens = scanner.nextLine().trim().toLowerCase().split("\\s+");
+            String[] tokens = scanner.nextLine().trim().split("\\s+");
 
             if (":exit".equals(tokens[0]) || ":quit".equals(tokens[0])) {
                 System.out.println("Bye!");
